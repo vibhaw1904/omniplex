@@ -123,8 +123,13 @@ const Sidebar = () => {
             className={styles.titleButtonIcon}
           />
           <p className={styles.titleButtonText}>New Chat</p>
+          
+
         </div>
+       
+    
       </div>
+     
       {isSidebarOpen && (
         <>
           <div
@@ -144,6 +149,7 @@ const Sidebar = () => {
                       alt="History"
                       className={styles.iconActive}
                     />
+                    
                   ) : (
                     <Image
                       src={ChatInactive}
