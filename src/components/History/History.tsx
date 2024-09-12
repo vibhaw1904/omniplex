@@ -23,6 +23,7 @@ import {
   deleteDoc,
   doc,
   Timestamp,
+  onSnapshot
 } from "firebase/firestore";
 import { db } from "../../../firebaseConfig";
 
@@ -45,26 +46,33 @@ const History = () => {
   const[search,setSearch]=useState('');
   
 
-  const fetchChatHistory =  async () => {
+  const fetchChatHistory =   () => {
     if (isAuthenticated && userDetails.uid) {
       setLoading(true);
       const historyRef = collection(db, "users", userDetails.uid, "history");
       const q = query(historyRef, orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const history = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as ChatThreadWithTimestamp[];
-      const filteredHistory = history.filter((item) =>
-        item.chats[0].question.toLowerCase().includes(search.toLowerCase())
-      );
-      filteredHistory.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
-
-      setChatHistory(filteredHistory);
-      setLoading(false);
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const history = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as ChatThreadWithTimestamp[];
+  
+        const filteredHistory = history.filter((item) =>
+          item.chats[0].question.toLowerCase().includes(search.toLowerCase())
+        );
+  
+        filteredHistory.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+  
+        setChatHistory(filteredHistory);
+        setLoading(false);
+      });
+  
+      // Return the unsubscribe function
+      return unsubscribe;
     } else {
       setChatHistory([]);
       setLoading(false);
+      return ()=>{}
     }
   };
  
@@ -81,7 +89,9 @@ const History = () => {
     onOpen();
   };
   useEffect(() => {
-    fetchChatHistory();
+    const unsubscribe= fetchChatHistory();
+    return ()=>unsubscribe();
+   
   }, [search, isAuthenticated, userDetails.uid]);
   return (
     <div className={styles.list}>

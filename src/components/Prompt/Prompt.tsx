@@ -113,6 +113,7 @@ const Prompt = (props: Props) => {
                   }}                >
                   <Image src={Arrow} alt="Arrow" width={24} height={24} />
                 </div>
+                  
               </div>
             )}
           </div>
