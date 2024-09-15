@@ -173,3 +173,47 @@
     bottom: 0px;
   }
 }
+/* .promptContainer {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 20px;
+  padding: 8px 16px;
+} */
+
+.promptText {
+  flex-grow: 1;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  outline: none;
+}
+
+.actionsContainer {
+  display: flex;
+  align-items: center;
+}
+
+.fileInputLabel {
+  cursor: pointer;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 4px;
+}
+
+.fileInput {
+  display: none;
+}
+.fileName {
+  font-size: 14px;
+  color: rgb(143, 143, 156);
+  margin-right: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+

@@ -11,6 +11,9 @@ import { selectAuthState } from "@/store/authSlice";
 import Copy from "../../../public/svgs/Copy.svg";
 import Share from "../../../public/svgs/Share.svg";
 import Rewrite from "../../../public/svgs/Rewrite.svg";
+import volume from "../../../public/volume.png"
+import thumbsup from "../../../public/thumbs-up.png"
+import thumbsdown from "../../../public/thumbs-down.png"
 
 type Props = {
   fork?: boolean;
@@ -49,9 +52,23 @@ const Actions = (props: Props) => {
   return (
     <div className={styles.actionRow}>
       {authState && (
-        <div className={styles.actionContainer} onClick={onOpen}>
+        <div className={styles.change}>
+          <div className={styles.actionContainer} onClick={onOpen}>
           <Image src={Share} alt="Share" className={styles.action} />
           <p className={styles.actionText}>Share</p>
+        </div>
+        <div className={styles.actionContainer} >
+        <Image src={volume} alt="Read" className={styles.action} />
+        <p className={styles.actionText}>Read</p>
+      </div>
+      <div className={styles.actionContainer} onClick={onOpen}>
+      <Image src={thumbsup} alt="like" className={styles.action} />
+      <p className={styles.actionText}>Like</p>
+    </div>
+    <div className={styles.actionContainer} onClick={onOpen}>
+    <Image src={thumbsdown} alt="dislike" className={styles.action} />
+    <p className={styles.actionText}>Dislke</p>
+  </div>
         </div>
       )}
       {!props.fork && (

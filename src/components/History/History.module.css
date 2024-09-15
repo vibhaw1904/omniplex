@@ -193,3 +193,11 @@
     opacity: 1;
   }
 }
+
+.search{
+  border-radius: 20px;
+  color: #161616;
+}
+.search:hover{
+  color: black;
+}

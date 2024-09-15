@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Modal, ModalContent } from "@nextui-org/modal";
 import { useDispatch } from "react-redux";
 import { setAuthState, setUserDetailsState } from "@/store/authSlice";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../../firebaseConfig";
 import Spinner from "../Spinner/Spinner";
@@ -20,7 +20,7 @@ const Auth = (props: Props) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
 
-  const handleAuth = async () => {
+  const handleGoogleAuth = async () => {
     setLoading(true);
     try {
       const auth = getAuth();
@@ -71,6 +71,56 @@ const Auth = (props: Props) => {
     }
   };
 
+  const  handleGithubAuth=async()=>{
+    setLoading(true);
+    try {
+      const auth=getAuth();
+      const provider = new GithubAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        await setDoc(
+          userRef,
+          {
+            userDetails: {
+              email: user.email,
+              name: user.displayName,
+              profilePic: user.photoURL,
+            },
+          },
+          { merge: true }
+        );
+      } else {
+        await setDoc(userRef, {
+          userDetails: {
+            email: user.email,
+            name: user.displayName,
+            profilePic: user.photoURL,
+            createdAt: serverTimestamp(),
+          },
+        });
+      }
+
+      dispatch(setAuthState(true));
+      dispatch(
+        setUserDetailsState({
+          uid: user.uid,
+          name: user.displayName ?? "",
+          email: user.email ?? "",
+          profilePic: user.photoURL ?? "",
+        })
+      );
+      props.onClose();
+      setLoading(false);
+    } catch (error) {
+      console.log("error", error);
+      setLoading(false);
+    }
+  }
   return (
     <Modal
       size={"lg"}
@@ -113,7 +163,8 @@ const Auth = (props: Props) => {
                   <div className={styles.buttonText}>Signing in</div>
                 </div>
               ) : (
-                <div className={styles.button} onClick={handleAuth}>
+              <div>
+                  <div className={styles.button} onClick={handleGoogleAuth}>
                   <Image
                     src={"/svgs/Google.svg"}
                     alt={"Google"}
@@ -122,6 +173,17 @@ const Auth = (props: Props) => {
                   />
                   <div className={styles.buttonText}>Continue with Google</div>
                 </div>
+                <div className={styles.button} onClick={handleGithubAuth}>
+                  <Image
+                    src={"/githubimg.jpeg"}
+                    alt={"Google"}
+                    width={24}
+                    height={24}
+                  />
+                  <div className={styles.buttonText}>Continue with github</div>
+                </div>
+              </div>
+                
               )}
             </div>
           </div>

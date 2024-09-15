@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import styles from "./History.module.css";
 import Image from "next/image";
 import Auth from "../Auth/Auth";
@@ -23,6 +23,7 @@ import {
   deleteDoc,
   doc,
   Timestamp,
+  onSnapshot
 } from "firebase/firestore";
 import { db } from "../../../firebaseConfig";
 
@@ -42,29 +43,39 @@ const History = () => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatThreadWithTimestamp[]>([]);
+  const[search,setSearch]=useState('');
+  
 
-  useEffect(() => {
-    fetchChatHistory();
-  }, [isAuthenticated, userDetails.uid]);
-
-  const fetchChatHistory = async () => {
+  const fetchChatHistory =   () => {
     if (isAuthenticated && userDetails.uid) {
       setLoading(true);
       const historyRef = collection(db, "users", userDetails.uid, "history");
       const q = query(historyRef, orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const history = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as ChatThreadWithTimestamp[];
-      setChatHistory(history);
-      setLoading(false);
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const history = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as ChatThreadWithTimestamp[];
+  
+        const filteredHistory = history.filter((item) =>
+          item.chats[0].question.toLowerCase().includes(search.toLowerCase())
+        );
+  
+        filteredHistory.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+  
+        setChatHistory(filteredHistory);
+        setLoading(false);
+      });
+  
+      // Return the unsubscribe function
+      return unsubscribe;
     } else {
       setChatHistory([]);
       setLoading(false);
+      return ()=>{}
     }
   };
-
+ 
   const handleDelete = async (threadId: string) => {
     if (isAuthenticated && userDetails.uid) {
       setDeleting(true);
@@ -77,7 +88,11 @@ const History = () => {
   const handleAuth = () => {
     onOpen();
   };
-
+  useEffect(() => {
+    const unsubscribe= fetchChatHistory();
+    return ()=>unsubscribe();
+   
+  }, [search, isAuthenticated, userDetails.uid]);
   return (
     <div className={styles.list}>
       <div className={styles.titleContainer}>
@@ -95,6 +110,7 @@ const History = () => {
       </div>
       <ScrollShadow hideScrollBar className="h-[calc(100vh_-_50px)] w-full">
         <div className={styles.listContainer}>
+          <input type="search" className={styles.search} onChange={(e)=>setSearch(e.target.value)} placeholder="search" value={search}/>
           {loading ? (
             <React.Fragment>
               <Skeleton className={styles.skeletonListHeader} />
